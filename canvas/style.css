@@ -1,0 +1,24 @@
+body{
+  margin:0;
+  background: #222;
+}
+
+.page-title-container {
+  position: absolute;
+  background: rgba(255, 255, 255, 0.75);
+  padding: 1rem;
+  top: .4rem;
+  left: .4rem;
+  border-radius: .4rem;
+}
+
+.page-title-container h3, a, p {
+  margin: 0;
+  font-family: 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+}
+
+canvas {
+  width: 100%; /* Use 100% to make it responsive */
+  height: 100vh; /* Full viewport height */
+  display: block; /* Removes default canvas margin */
+}
