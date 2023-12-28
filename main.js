@@ -220,17 +220,15 @@ function animate() {
     if (phase === "floating") {
       floatingPhase(sphere, index);
     } else if (phase === "eclipse") {
-      animationTime += 0.001; // Control the speed of the eclipse
-      if (animationTime > 1) {
-        animationTime = 1;
-      }
       eclipsePhase(sphere, initialPositions[index] || { x: 0, y: 0, z: 0 }, index);
-      console.log("eclipsePhase(sphere, initialPositions[index] || { x: 0, y: 0, z: 0 }, index);");
       let colorProgress = new THREE.Color(0xffffff).lerp(new THREE.Color(0x000000), animationTime);
       renderer.setClearColor(colorProgress);
     } else if (phase === "scatter") {
       moveToTarget(sphere, targets[index], scatterStartTime, currentTime);
     }
+
+    // Set text visibility based on the phase
+    setSphereTextVisibility(sphere, phase === "scatter");
 
     // Scale spheres on hover only in the scatter phase
     if (phase === "scatter") {
@@ -266,6 +264,7 @@ function animate() {
 
   renderer.render(scene, camera);
 }
+
 
 function setSphereTextVisibility(sphere, isVisible) {
   console.log(1.1)
