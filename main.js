@@ -5,7 +5,7 @@ camera.position.z = 5;
 
 const renderer = new THREE.WebGLRenderer();
 renderer.setSize(window.innerWidth, window.innerHeight);
-renderer.setClearColor(0xffffff, 1);
+renderer.setClearColor(0xffeeee, 1);
 document.body.appendChild(renderer.domElement);
 
 let currentBgColor = new THREE.Color(0xffffff); // Starting color: white
@@ -23,16 +23,19 @@ const raycaster = new THREE.Raycaster();
 const mouse = new THREE.Vector2();
 window.addEventListener("mousemove", onMouseMove, false);
 
-// Text Loading
-const loader = new THREE.FontLoader();
-loader.load("./font.json", addTextToSpheres);
-
 // Sphere Creation
 const sphereGeometry = new THREE.SphereGeometry(0.3, 32, 32);
 const SPHERES_COLORS = [0xff0000, 0x00ff00, 0x0000ff, 0xffff00, 0x00ffff, 0xff00ff];
 const sphereMaterials = SPHERES_COLORS.map((color) => new THREE.MeshStandardMaterial({ color }));
 
 const spheres = sphereMaterials.map((material) => new THREE.Mesh(sphereGeometry, material));
+
+// Text Loading
+const loader = new THREE.FontLoader();
+loader.load("./font.json", addTextToSpheres);
+
+spheres.forEach((sphere) => setSphereTextVisibility(sphere, false));
+
 spheres.forEach((sphere, index) => {
   sphere.visible = index < 2; // Only the first two spheres are initially visible
   scene.add(sphere);
@@ -180,12 +183,10 @@ function addTextToSpheres(font) {
   });
 }
 
-
 function onPhaseChange() {
   if (phase === "floating") {
     phase = "eclipse";
     animationTime = 0;
-
     // Update initialPositions to current position
     spheres.forEach((sphere, index) => {
       initialPositions[index] = { x: sphere.position.x, y: sphere.position.y, z: sphere.position.z };
@@ -197,6 +198,8 @@ function onPhaseChange() {
       sphere.visible = true;
       sphere.material.color.set(SPHERES_COLORS[index]);
     });
+  } else if (phase === "scatter") {
+    spheres.forEach((sphere) => setSphereTextVisibility(sphere, true));
   }
 }
 
@@ -216,19 +219,17 @@ function animate() {
     // Handle sphere movement based on phase
     if (phase === "floating") {
       floatingPhase(sphere, index);
-      setSphereTextVisibility(sphere, false); // Hide text during floating
     } else if (phase === "eclipse") {
       animationTime += 0.001; // Control the speed of the eclipse
       if (animationTime > 1) {
         animationTime = 1;
       }
       eclipsePhase(sphere, initialPositions[index] || { x: 0, y: 0, z: 0 }, index);
-      setSphereTextVisibility(sphere, false); // Hide text during eclipse
+      console.log("eclipsePhase(sphere, initialPositions[index] || { x: 0, y: 0, z: 0 }, index);");
       let colorProgress = new THREE.Color(0xffffff).lerp(new THREE.Color(0x000000), animationTime);
       renderer.setClearColor(colorProgress);
     } else if (phase === "scatter") {
       moveToTarget(sphere, targets[index], scatterStartTime, currentTime);
-      setSphereTextVisibility(sphere, true); // Show text during scatter
     }
 
     // Scale spheres on hover only in the scatter phase
@@ -267,10 +268,10 @@ function animate() {
 }
 
 function setSphereTextVisibility(sphere, isVisible) {
+  console.log(1.1)
   sphere.children.forEach((child) => {
-    if (child instanceof THREE.Mesh && child.geometry instanceof THREE.TextGeometry) {
-      child.visible = isVisible;
-    }
+    console.log(1.2, child.visible, isVisible)
+    child.visible = isVisible; // Set visibility based on the passed parameter
   });
 }
 
