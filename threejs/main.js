@@ -115,7 +115,7 @@ function eclipsePhase(sphere, initialPosition, index) {
   if (index === 0 && progress >= 0.95) {
     // Start enlarging the red sphere
     sphere.position.z = -1 * easeOutExpo(progress - 0.95); // Move it back along z-axis
-    let scaleFactor = 1 + easeOutExpo(progress - 0.95) * 0.5; // Scale up, adjust 0.5 to control max size
+    let scaleFactor = 1 + easeOutExpo(progress - 0.95) * 0.35; // Scale up, adjust 0.5 to control max size
     sphere.scale.set(scaleFactor, scaleFactor, scaleFactor);
   }
 }
@@ -154,43 +154,32 @@ function onMouseMove(event) {
 
 function addTextToSpheres(font) {
   const textHeight = 0.03; // Height of the text
-  const textDistanceFromSphere = 0.35; // Distance above the sphere surface
+  const radiusOffset = 0.35; // Distance from the sphere's surface
   const labels = ["Analisi Dati", "Sviluppo", "Marketing", "Progetti", "Ricerche", "Contatti"];
 
   spheres.forEach((sphere, index) => {
-    // Ensure there is a label for each sphere
-    const label = labels[index] ? labels[index] : "Label " + (index + 1);
-
+    const label = labels[index];
     const textGeometry = new THREE.TextGeometry(label, {
-      // Use the label for the text
       font: font,
       size: 0.15,
       height: textHeight,
     });
 
-    // Calculate the bounding box of the text geometry
-    textGeometry.computeBoundingBox();
-    const textWidth = textGeometry.boundingBox.max.x - textGeometry.boundingBox.min.x;
-
     const textMaterial = new THREE.MeshBasicMaterial({ color: 0xffffff });
     const textMesh = new THREE.Mesh(textGeometry, textMaterial);
 
-    // Center the text horizontally
-    textMesh.position.x = -textWidth / 2; // This will center the text on the x-axis
+    // Position the text on top of the sphere
+    textGeometry.computeBoundingBox();
+    const textWidth = textGeometry.boundingBox.max.x - textGeometry.boundingBox.min.x;
+    textMesh.position.set(-textWidth / 2, sphere.geometry.parameters.radius + radiusOffset, 0);
 
-    // Position the text above the sphere and closer than before
-    textMesh.position.y = sphere.geometry.parameters.radius + textDistanceFromSphere;
-
-    // Rotate the text to face the camera
-    textMesh.lookAt(camera.position);
-
-    // Slightly tilt the text to match the curvature of the sphere
-    textMesh.rotation.x -= Math.PI / 15; // Adjust this value to match the curvature
-
-    // Attach the text mesh to the sphere
-    sphere.add(textMesh);
+    // Add textMesh to textGroup for easier manipulation
+    const textGroup = new THREE.Group();
+    textGroup.add(textMesh);
+    sphere.add(textGroup);
   });
 }
+
 
 function onPhaseChange() {
   if (phase === "floating") {
@@ -233,7 +222,6 @@ function animate() {
       if (animationTime > 1) {
         animationTime = 1;
       }
-      let progress = easeOutExpo(animationTime);
       eclipsePhase(sphere, initialPositions[index] || { x: 0, y: 0, z: 0 }, index);
       setSphereTextVisibility(sphere, false); // Hide text during eclipse
       let colorProgress = new THREE.Color(0xffffff).lerp(new THREE.Color(0x000000), animationTime);
