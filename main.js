@@ -5,7 +5,7 @@ camera.position.z = 5;
 
 const renderer = new THREE.WebGLRenderer();
 renderer.setSize(window.innerWidth, window.innerHeight);
-renderer.setClearColor(0xffeeee, 1);
+renderer.setClearColor(0xffffff, 1);
 document.body.appendChild(renderer.domElement);
 
 let currentBgColor = new THREE.Color(0xffffff); // Starting color: white
@@ -96,32 +96,33 @@ function floatingPhase(sphere, index) {
 
 // Eclipse Phase Logic
 function eclipsePhase(sphere, initialPosition, index) {
-  animationTime += 0.001; // Control the speed of the eclipse
+  animationTime += 0.001; // Increment the animation time
   if (animationTime > 1) {
-    animationTime = 1;
-    if (index === 0) {
-      // Trigger the whitening phase when the eclipse is complete
-      whiteningPhase = true;
-    }
+    animationTime = 1; // Cap the animation time to prevent overshooting
   }
 
   let progress = easeOutExpo(animationTime);
   sphere.position.x = THREE.MathUtils.lerp(initialPosition.x, 0, progress);
   sphere.position.y = THREE.MathUtils.lerp(initialPosition.y, 0, progress);
 
-  // Change color to black gradually
-  if (progress < 1) {
-    let colorProgress = progress;
-    sphere.material.color.lerp(new THREE.Color(0x333333), colorProgress);
-  }
+  // Gradually change the color of the sphere to a darker shade
+  let currentColor = new THREE.Color(SPHERES_COLORS[index]); // Original color
+  let targetColor = new THREE.Color(0x000000); // Target color (dark black)
+  sphere.material.color.copy(currentColor).lerp(targetColor, progress);
 
   if (index === 0 && progress >= 0.95) {
-    // Start enlarging the red sphere
+    // Enlarging the first sphere logic
     sphere.position.z = -1 * easeOutExpo(progress - 0.95); // Move it back along z-axis
-    let scaleFactor = 1 + easeOutExpo(progress - 0.95) * 0.35; // Scale up, adjust 0.5 to control max size
+    let scaleFactor = 1 + easeOutExpo(progress - 0.95) * 0.35; // Scale up, adjust to control max size
     sphere.scale.set(scaleFactor, scaleFactor, scaleFactor);
   }
+
+  // Trigger the whitening phase for the first sphere when the eclipse is complete
+  if (index === 0 && animationTime === 1) {
+    whiteningPhase = true;
+  }
 }
+
 
 // Target positions for each sphere
 const targets = [
@@ -267,9 +268,7 @@ function animate() {
 
 
 function setSphereTextVisibility(sphere, isVisible) {
-  console.log(1.1)
   sphere.children.forEach((child) => {
-    console.log(1.2, child.visible, isVisible)
     child.visible = isVisible; // Set visibility based on the passed parameter
   });
 }
